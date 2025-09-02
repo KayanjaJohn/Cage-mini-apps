@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exciting Music Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: black;
+      color: white;
+      overflow: hidden;
+    }
+
+    #slideshow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 1s ease-in-out;
+    }
+
+    .shake {
+      animation: shake 0.2s infinite;
+    }
+    @keyframes shake {
+      0% { transform: translate(2px, 2px); }
+      25% { transform: translate(-2px, 2px); }
+      50% { transform: translate(2px, -2px); }
+      75% { transform: translate(-2px, -2px); }
+      100% { transform: translate(2px, 2px); }
+    }
+
+    canvas {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 150px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .player {
+      text-align: center;
+      position: relative;
+      z-index: 3;
+      padding: 1em;
+    }
+
+    label {
+      display: block;
+      margin: 10px;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    button, .toggle-btn {
+      background: #444;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover, .toggle-btn:hover {
+      background: #666;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0; right: 0;
+      width: 300px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      z-index: 5;
+      padding: 1em;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .sidebar ul li{
+      list-style: none;
+      cursor: pointer;
+      margin-bottom: 5px;
+      padding: 8px;
+      border: 1px solid darkslategrey;
+    }
+
+    .draggable-icon {
+      position: fixed;
+      top: 80px;
+      right: 10px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: grab;
+      z-index: 6;
+    }
+
+    .floating-toggle {
+      position: fixed;
+      bottom: 80px;
+      right: 10px;
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border-radius: 50%;
+      font-size: 24px;
+      text-align: center;
+      line-height: 50px;
+      cursor: pointer;
+      z-index: 6;
+    }
+
+    .hidden-ui .player{
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="slideshow"></div>
+
+  <div class="player">
+    <label for="audioInput">🎵 Select Audio</label>
+    <input type="file" id="audioInput" accept="audio/*" multiple>
+
+    <label for="imageInput">🖼️ Select Images</label>
+    <input type="file" id="imageInput" accept="image/*" multiple>
+
+    <button id="shakeBtn">Toggle Shake</button>
+
+    <br><audio id="audio" controls></audio>
+  </div>
+
+  <canvas id="visualizer"></canvas>
+
+  <div id="sidebar" class="sidebar">
+    <button onclick="document.getElementById('sidebar').style.display='none'">Close ❌</button>
+    <h3>Playlist</h3>
+    <ul id="playlist"></ul>
+    <h3>Gallery</h3>
+    <ul id="gallery"></ul>
+    <h3>Options</h3>
+    <label>Visualizer Color: <input type="color" id="vizColor"></label>
+    <label><input type="checkbox" id="vizToggle" checked> Visualizer On/Off</label>
+    <button onclick="saveAppState()">Save</button>
+    <button onclick="deleteAppState()">Delete Saved</button>
+  </div>
+
+  <div id="menuBtn" class="draggable-icon">☰</div>
+  <div id="eyeToggle" class="floating-toggle">👁️</div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const slideshow = document.getElementById('slideshow');
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    const playlist = document.getElementById('playlist');
+    const gallery = document.getElementById('gallery');
+    const eyeToggle = document.getElementById('eyeToggle');
+    const menuBtn = document.getElementById('menuBtn');
+    const shakeBtn = document.getElementById('shakeBtn');
+
+    let audioCtx, analyser, dataArray;
+    let images = [], tracks = [], currentTrack = 0;
+    let currentImageIndex = 0;
+    let shakeEnabled = false;
+    let visualizerOn = true;
+    let vizColor = '#ff00ff';
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = 150;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('audioInput').addEventListener('change', e => {
+      [...e.target.files].forEach(file => {
+        const url = URL.createObjectURL(file);
+        tracks.push({ name: file.name, url });
+        const li = document.createElement('li');
+        li.textContent = file.name;
+        li.onclick = () => playTrack(tracks.findIndex(t => t.url === url));
+        playlist.appendChild(li);
+      });
+      if (tracks.length) playTrack(0);
+      setupAudioAnalysis();
+    });
+
+    function playTrack(index) {
+      if (index < 0 || index >= tracks.length) return;
+      currentTrack = index;
+      audio.src = tracks[currentTrack].url;
+      audio.play();
+    }
+
+    audio.addEventListener('ended', () => {
+      currentTrack = (currentTrack + 1) % tracks.length;
+      playTrack(currentTrack);
+    });
+
+    document.getElementById('imageInput').addEventListener('change', e => {
+      [...e.target.files].forEach(file => {
+        const url = URL.createObjectURL(file);
+        images.push(url);
+        const li = document.createElement('li');
+        li.textContent = file.name;
+        li.onclick = () => slideshow.style.backgroundImage = `url('${url}')`;
+        gallery.appendChild(li);
+      });
+      startSlideshow();
+    });
+
+    function startSlideshow() {
+      setInterval(() => {
+        if (images.length) {
+          currentImageIndex = (currentImageIndex + 1) % images.length;
+          slideshow.style.backgroundImage = `url('${images[currentImageIndex]}')`;
+        }
+      }, 4000);
+    }
+
+    function setupAudioAnalysis() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      drawVisualizer();
+      detectBeat();
+    }
+
+    function drawVisualizer() {
+      function draw() {
+        requestAnimationFrame(draw);
+        if (!visualizerOn) return ctx.clearRect(0, 0, canvas.width, canvas.height);
+        analyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const barWidth = (canvas.width / dataArray.length) * 2.5;
+        let x = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const barHeight = dataArray[i];
+          ctx.fillStyle = vizColor;
+          ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+          x += barWidth + 1;
+        }
+      }
+      draw();
+    }
+
+    function detectBeat() {
+      let lastBeat = 0;
+      requestAnimationFrame(function loop() {
+        requestAnimationFrame(loop);
+        analyser.getByteFrequencyData(dataArray);
+        const bass = dataArray.slice(0, 10).reduce((a,b)=>a+b, 0)/10;
+        if (shakeEnabled && bass > 180 && Date.now() - lastBeat > 100) {
+          slideshow.classList.add('shake');
+          setTimeout(() => slideshow.classList.remove('shake'), 150);
+          lastBeat = Date.now();
+        }
+      });
+    }
+
+    shakeBtn.addEventListener('click', () => {
+      shakeEnabled = !shakeEnabled;
+      shakeBtn.textContent = shakeEnabled ? 'Shake On' : 'Shake Off';
+    });
+
+    document.getElementById('vizColor').addEventListener('input', e => vizColor = e.target.value);
+    document.getElementById('vizToggle').addEventListener('change', e => visualizerOn = e.target.checked);
+
+    eyeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('hidden-ui');
+    });
+
+    menuBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').style.display = 'block';
+    });
+
+    function dragElement(el) {
+      let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+      el.onmousedown = dragMouseDown;
+      function dragMouseDown(e) {
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+      }
+      function elementDrag(e) {
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        el.style.top = (el.offsetTop - pos2) + "px";
+        el.style.left = (el.offsetLeft - pos1) + "px";
+      }
+      function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+      }
+    }
+    dragElement(menuBtn);
+    dragElement(eyeToggle);
+
+    function saveAppState() {
+      localStorage.setItem('vizColor', vizColor);
+      localStorage.setItem('vizToggle', visualizerOn);
+    }
+    function deleteAppState() {
+      localStorage.clear();
+    }
+
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('vizColor')) {
+        vizColor = localStorage.getItem('vizColor');
+        document.getElementById('vizColor').value = vizColor;
+      }
+      if (localStorage.getItem('vizToggle')) {
+        visualizerOn = localStorage.getItem('vizToggle') === 'true';
+        document.getElementById('vizToggle').checked = visualizerOn;
+      }
+    });
+  </script>
+</body>
+</html>
