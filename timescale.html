@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Moon & You — Cosmic</title>
+
+  <!-- Orbitron for digital look -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#05020a;
+      --bg2:#08122b;
+      --accent:#49f0ff;
+      --glow: 0 0 18px rgba(73,240,255,0.12), 0 0 40px rgba(73,240,255,0.06);
+      --card:#071428;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+
+    body{
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(25,10,60,0.6), transparent),
+                  radial-gradient(900px 500px at 90% 80%, rgba(5,10,40,0.6), transparent),
+                 linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:#d7eef6;
+      min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:28px;
+      overflow-x:srollable;
+    }
+
+    /* Stars */
+    .stars{position:absolute;inset:0;pointer-events:none}
+    .star{position:absolute;width:2px;height:2px;background:white;border-radius:50%;opacity:0.85;box-shadow:0 0 6px rgba(255,255,255,0.4)}
+    /* twinkle animation applied to container */
+    .stars{animation:twinkle 8s infinite}
+    @keyframes twinkle{0%,100%{opacity:0.9}50%{opacity:0.6}}
+.title{
+  padding:2px;
+  letter-spacing:1cm;
+}
+    .app{
+      width:100%;max-width:900px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border-radius:16px;padding:28px;display:grid;grid-template-columns:1fr 420px;gap:22px;box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+      backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);
+      margin:0 auto;
+    }
+
+    header{grid-column:1/-1;display:flex;align-items:center;gap:14px}
+    .title{font-family:Orbitron,monospace;font-weight:700;font-size:22px;letter-spacing:1px}
+    .subtitle{font-size:13px;opacity:0.85;
+      padding:20px;
+    }
+
+    /* Left column (moon visual + info) */
+    .moon-panel{padding:18px;border-radius:12px;background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));border:1px solid rgba(255,255,255,0.02)}
+    .moon-wrap{display:flex;gap:18px;align-items:center}
+
+    /* Moon visual */
+    .moon{
+      width:160px;height:160px;border-radius:50%;position:relative;flex:0 0 160px;background:linear-gradient(180deg,#fff 0%, #d8d8d8 60%);
+      box-shadow: 0 8px 30px rgba(8,20,40,0.6), var(--glow);
+      display:flex;align-items:center;justify-content:center;overflow:hidden
+    }
+    .moon .shadow{
+      position:absolute;right:0;top:0;bottom:0;width:100%;background:radial-gradient(circle at 35% 50%, rgba(0,0,0,0.18), rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.6));transform-origin:center;transition:all 600ms ease}
+    .moon .face{position:relative;z-index:2}
+
+    .moon-info{flex:1}
+    .phase-name{font-family:Orbitron,monospace;font-size:18px;margin:0}
+    .phase-desc{margin:6px 0 0 0;color:#bfeaf9;opacity:0.9;font-size:14px}
+
+    .next-list{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    .pill{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.08));padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);font-size:13px}
+
+    /* Right column (calculator) */
+    .calc-panel{padding:20px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.04));border:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:14px}
+    .prompt{font-size:14px;opacity:0.95}
+
+    .input-row{display:flex;gap:8px}
+    input[type=number]{flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;font-size:16px;font-weight:600;font-family:Orbitron,monospace}
+    button{padding:12px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#6ef4ff);color:#01151a;font-weight:700;cursor:pointer;font-family:Orbitron,monospace;box-shadow:var(--glow)}
+    button:active{transform:translateY(1px)}
+
+    .result-display{margin-top:6px;padding:16px;border-radius:10px;background:linear-gradient(180deg, rgba(8,28,44,0.4), rgba(6,12,24,0.1));text-align:center}
+    .result-num{font-family:Orbitron,monospace;font-size:38px;letter-spacing:2px}
+    .result-sub{font-size:14px;opacity:0.9;margin-top:6px}
+
+    .progress{height:12px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));overflow:hidden}
+    .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#00f6ff,#7af3ff);box-shadow:var(--glow);transition:width 800ms ease}
+
+    footer{grid-column:1/-1;text-align:center;font-size:13px;opacity:0.8;margin-top:6px}
+
+    /* Responsive */
+    @media (max-width:880px){
+      .app{grid-template-columns:1fr;max-width:760px;padding:18px}
+      .moon{width:120px;height:120px}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+
+  <div class="app" role="application" style="margin-top:450px;">
+    <header>
+      <div class="title">🌕 Moon & You</div>
+      <div class="subtitle">Discover the moon's rhythm & your days in a cosmic digital display</div>
+    </header>
+
+    <section class="moon-panel">
+      <div class="moon-wrap">
+        <div class="moon" id="moon">
+          <div class="face"> </div>
+          <div class="shadow" id="moonShadow"></div>
+        </div>
+        <div class="moon-info">
+          <h3 class="phase-name" id="phaseName">Loading...</h3>
+          <div class="phase-desc" id="phaseDesc">Calculating lunar rhythm</div>
+
+          <div class="next-list">
+            <div class="pill">Next New Moon: <strong id="nextNew">—</strong></div>
+            <div class="pill">Next Full Moon: <strong id="nextFull">—</strong></div>
+            <div class="pill">Moon Age: <strong id="moonAge">—</strong> days</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;color:#bfeaf9;opacity:0.9;font-size:13px">Tip: This is an approximate lunar model (uses a simple 29.53-day cycle). For exact ephemeris, we can add an astronomy API.</div>
+    </section>
+
+    <aside class="calc-panel">
+      <div>
+        <div class="prompt">How old are you now?</div>
+        <div style="font-size:13px;opacity:0.85;margin-top:6px">Enter your age in years (whole or decimal). The app uses <strong>28 × 12 × age</strong> to compute "age in days".</div>
+      </div>
+
+      <div class="input-row">
+        <input id="ageInput" type="number" min="0" step="0.1" placeholder="Enter your age in years" aria-label="Age in years">
+        <button id="calcBtn">✨ Calculate ✨</button>
+      </div>
+
+      <div class="result-display" id="resultBox">
+        <div class="result-num" id="resultText">You're — days old my friend 😎💌</div>
+        <div class="result-sub" id="resultSub">Use the Calculate button</div>
+        <div style="margin-top:12px">
+          <div class="progress"><i id="progressBar"></i></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;opacity:0.85;padding-top:8px">Time scale: a playful progress bar showing the fraction of a typical life span you've lived. (You can change the "years" baseline in code.)</div>
+    </aside>
+
+    <footer>Keep watching the skies — your moon is always with you. 🌙</footer>
+  </div>
+
+  <script>
+    // sprinkle some stars randomly
+    (function makeStars(){
+      const s = document.getElementById('stars');
+      const COUNT = 70;
+      for(let i=0;i<COUNT;i++){
+        const el = document.createElement('div');
+        el.className='star';
+        const x = Math.random()*100; const y=Math.random()*100;
+        const size = Math.random()*2 + 1;
+        el.style.left = x+'%'; el.style.top = y+'%'; el.style.width = size+'px'; el.style.height = size+'px';
+        el.style.opacity = 0.6 + Math.random()*0.5;
+        s.appendChild(el);
+      }
+    })();
+
+    // Simple lunar phase model
+    function phaseFraction(date){
+      // lunar period in seconds (29.530588853 days)
+      const lp = 29.530588853 * 24 * 3600;
+      // reference new moon: 2000-01-06T18:14:00Z (approx)
+      const ref = Date.UTC(2000,0,6,18,14,0) / 1000;
+      const now = date.getTime()/1000;
+      const diff = now - ref;
+      const phase = (diff % lp) / lp; // 0..1
+      return phase < 0 ? phase + 1 : phase;
+    }
+
+    function phaseName(frac){
+      if(frac < 0.03 || frac > 0.97) return 'New Moon';
+      if(frac < 0.25) return 'Waxing Crescent';
+      if(Math.abs(frac - 0.25) < 0.03) return 'First Quarter';
+      if(frac < 0.5) return 'Waxing Gibbous';
+      if(Math.abs(frac - 0.5) < 0.03) return 'Full Moon';
+      if(frac < 0.75) return 'Waning Gibbous';
+      if(Math.abs(frac - 0.75) < 0.03) return 'Last Quarter';
+      return 'Waning Crescent';
+    }
+
+    function phaseDesc(frac){
+      const names = {
+        'New Moon':'Dark night — new cycle',
+        'Waxing Crescent':'Moon is growing — good for beginnings',
+        'First Quarter':'Half-lit — decisions & action',
+        'Waxing Gibbous':'Approach to full — refine plans',
+        'Full Moon':'Bright and full — culmination',
+        'Waning Gibbous':'Releasing & reflecting',
+        'Last Quarter':'Letting go — rebalancing',
+        'Waning Crescent':'Rest before the new'
+      };
+      return names[phaseName(frac)];
+    }
+
+    function setMoonVisual(frac){
+      // We'll create a shadow overlay on the right and shift it according to phase
+      const shadow = document.getElementById('moonShadow');
+      // Map frac 0..1 to a -100..100 transform range for the shadow position
+      // 0 => new moon (fully dark) => shadow covers moon; 0.5 => full moon (shadow minimal)
+      const val = Math.cos(frac * 2 * Math.PI); // -1..1
+      const pos = (val + 1) / 2; // 0..1
+      // Width of shadow overlay in percent
+      const width = 100 - (pos * 98); // near 0 -> almost full shadow; near 0.5 -> small shadow
+      shadow.style.width = width + '%';
+      // also adjust opacity
+      shadow.style.opacity = 0.2 + (1 - pos) * 0.7;
+      // flip for waxing/waning visual
+      if(frac > 0.5){ shadow.style.transform = 'scaleX(-1)'; }
+      else { shadow.style.transform = 'scaleX(1)'; }
+    }
+
+    function findNextDateFor(targetFrac){
+      // search day-by-day until we find a phase that crosses the target threshold
+      const today = new Date();
+      let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const maxDays = 60; // search within next 60 days
+      const threshold = 0.02; // closeness to target fraction
+      for(let i=1;i<=maxDays;i++){
+        d.setDate(d.getDate()+1);
+        const f = phaseFraction(d);
+        // handle wrap-around distance
+        const dist = Math.min(Math.abs(f - targetFrac), 1 - Math.abs(f - targetFrac));
+        if(dist < threshold) return new Date(d);
+      }
+      return null;
+    }
+
+    function formatDate(d){
+      if(!d) return '—';
+      return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+    }
+
+    function updateMoonPanel(){
+      const now = new Date();
+      const frac = phaseFraction(now);
+      const name = phaseName(frac);
+      document.getElementById('phaseName').textContent = name + '  ' + (Math.round(frac*100)) + '%';
+      document.getElementById('phaseDesc').textContent = phaseDesc(frac);
+      document.getElementById('moonAge').textContent = (frac * 29.53).toFixed(1);
+      setMoonVisual(frac);
+
+      // next new moon -> target frac = 0
+      const nextNew = findNextDateFor(0);
+      const nextFull = findNextDateFor(0.5);
+      document.getElementById('nextNew').textContent = formatDate(nextNew);
+      document.getElementById('nextFull').textContent = formatDate(nextFull);
+    }
+
+    // Initial update
+    updateMoonPanel();
+    // refresh daily
+    setInterval(updateMoonPanel, 1000 * 60 * 60);
+
+    // Age-in-days calculator
+    const ageInput = document.getElementById('ageInput');
+    const calcBtn = document.getElementById('calcBtn');
+    const resultText = document.getElementById('resultText');
+    const resultSub = document.getElementById('resultSub');
+    const progressBar = document.getElementById('progressBar');
+
+    function computeDays(age){
+      // as per user's formula: 28 days × 12 months × age
+      const days = 28 * 12 * age;
+      return Math.round(days);
+    }
+
+    function onCalculate(){
+      const raw = parseFloat(ageInput.value);
+      if(isNaN(raw) || raw < 0){
+        resultSub.textContent = 'Please enter a valid age (0 or above).';
+        return;
+      }
+      const days = computeDays(raw);
+      resultText.textContent = `You're ${days.toLocaleString()} days old my friend 😎💌`;
+      resultSub.textContent = `Based on 28 days × 12 months × ${raw} years`;
+
+      // progress: choose a baseline lifespan (example 80 years => baselineDays)
+      const baselineYears = 80; // you can expose this in settings
+      const baselineDays = 28 * 12 * baselineYears;
+      const pct = Math.min(100, Math.round((days / baselineDays) * 100));
+      progressBar.style.width = pct + '%';
+
+      // small confetti-like glow
+      resultText.animate([
+        { transform: 'scale(0.98)', filter: 'brightness(0.9)' },
+        { transform: 'scale(1.02)', filter: 'brightness(1.08)' },
+        { transform: 'scale(1)', filter: 'brightness(1)' }
+      ], {duration:700, easing:'ease-out'});
+    }
+
+    calcBtn.addEventListener('click', onCalculate);
+    ageInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') onCalculate(); });
+
+    // set a sample default
+    ageInput.value = '';
+
+  </script>
+</body>
+</html>
